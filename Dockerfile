@@ -1,15 +1,24 @@
 #build stage
-FROM golang:alpine AS builder
-RUN apk add --no-cache git
-WORKDIR /go/src/app
+FROM golang:1.25-alpine AS builder
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod tidy
+
 COPY . .
-RUN go get -d -v ./...
-RUN go build -o /go/bin/app -v ./...
+
+RUN go build -o app .
+
+CMD [ "go", "run", "main.go" ]
 
 #final stage
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
-COPY --from=builder /go/bin/app /app
-ENTRYPOINT ["/app"]
-LABEL Name=chatappbe Version=0.0.1
+
+WORKDIR /root/
+
+COPY --from=builder  /app/app .
+# ENTRYPOINT ["/app"]
+# LABEL Name=chatappbe Version=0.0.1
 EXPOSE 3000
+CMD [ "./app" ]

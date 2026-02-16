@@ -1,8 +1,36 @@
 services:
   chatappbe:
-    image: chatappbe
+    image: chat_app
     build:
       context: .
       dockerfile: ./Dockerfile
     ports:
       - 3000:3000
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    environment:
+       DB_HOST: host.docker.internal
+       DB_USER: user
+       DB_PASSWORD: password123
+       DB_NAME: chat_app
+       DB_PORT: 5432
+       DB_TZ : Asia/Jakarta
+
+#  Creeate Container POSTGRESQL
+  # postgres:
+  #   image: postgres:16
+  #   container_name: .....
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER : ....
+  #     POSTGRES_PASSWORD : .....
+  #     POSTGRES_DB : .....
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - 5432:5432
+
+volumes:
+  postgres_data:
