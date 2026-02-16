@@ -1,6 +1,8 @@
 package main
 
 import (
+	"chat-app/internal/api"
+	"chat-app/internal/service"
 	"fmt"
 	"log"
 
@@ -12,13 +14,14 @@ func main() {
 	// Inisialisasi app Fiber
 	app := fiber.New()
 
-	// Route sederhana
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"status":  true,
-			"message": "Hello from Go Fiber 🚀",
-		})
-	})
+	chatService := service.ChatService{}
+
+	api.NewWebsocketAPI(app, chatService)
+
+	// // Route sederhana
+	// app.Get("/", func(c fiber.Ctx) error {
+	// 	return c.JSON(fiber.Map{})
+	// })
 
 	// Jalankan server
 	log.Fatal(app.Listen(":3000"))
