@@ -5,32 +5,36 @@ services:
       context: .
       dockerfile: ./Dockerfile
     ports:
-      - 3000:3000
+      - 9000:9000
     env_file:
       - .env
+    depends_on:
+      - postgres
     volumes:
       - .:/app
-    environment:
-       DB_HOST: host.docker.internal
-       DB_USER: user
-       DB_PASSWORD: password123
-       DB_NAME: chat_app
-       DB_PORT: 5432
-       DB_TZ : Asia/Jakarta
+    # environment:
+    #   DB_HOST: postgres
+    #   DB_USER: user
+    #   DB_PASSWORD: password123
+    #   DB_NAME: chat_db
+    #   DB_PORT: 5432
+    #   DB_TZ: Asia/Jakarta
+    #   JWT_KEY: secretChatApi
+    #   JWT_EXP: 60
 
-#  Creeate Container POSTGRESQL
-  # postgres:
-  #   image: postgres:16
-  #   container_name: .....
-  #   restart: always
-  #   environment:
-  #     POSTGRES_USER : ....
-  #     POSTGRES_PASSWORD : .....
-  #     POSTGRES_DB : .....
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   ports:
-  #     - 5432:5432
+  postgres:
+    image: postgres:16
+    container_name: chat_app_db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: chat_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
 
 volumes:
   postgres_data:
