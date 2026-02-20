@@ -25,16 +25,19 @@ func main() {
 	jwtMiddle := middleware.JWTProtected(config)
 
 	// Inisialisasi repository
-	userRepository :=
-		repository.NewUserRepository(database)
 
-		// Inisialisasi service
+	userRepository := repository.NewUserRepository(database)
+	chatRepository := repository.NewChatRepository(database)
+
+	// Inisialisasi service
 	AuthService := service.NewAuthService(config, userRepository)
-	chatService := service.ChatService{}
+	UserService := service.NewUserService(userRepository)
+	chatService := service.NewChatService(chatRepository)
 
 	// Inisialisasi API
-	api.NewWebsocketAPI(app, chatService)
 	api.NewAuthApi(app, AuthService, jwtMiddle)
+	api.NewUserApi(app, UserService, jwtMiddle)
+	api.NewWebsocketAPI(app, chatService, jwtMiddle)
 
 	// // Route sederhana
 	// app.Get("/", func(c fiber.Ctx) error {

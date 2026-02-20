@@ -4,6 +4,7 @@ import (
 	"chat-app/domain"
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 )
@@ -39,6 +40,13 @@ func (u *UserRepository) SaveRefreshToken(ctx context.Context, token *domain.Ref
 	return err
 }
 
+// FindByUserId implements [domain.UserRepository].
+func (u *UserRepository) FindByUserId(ctx context.Context, id string) (result domain.User, err error) {
+	dataset := u.db.From("users").Where(goqu.C("id").Eq(id))
+	err = dataset.ScanValsContext(ctx, &result)
+	return
+}
+
 // FindByResfreshToken implements [domain.UserRepository].
 func (u *UserRepository) FindByResfreshToken(ctx context.Context, refreshToken string) (result domain.RefreshToken, err error) {
 	dataset := u.db.From("refresh_tokens").Where(goqu.C("token").Eq(refreshToken))
@@ -58,4 +66,18 @@ func (u *UserRepository) DeleteRefreshToken(ctx context.Context, userId string) 
 	dataset := u.db.Delete("refresh_tokens").Where(goqu.C("user_id").Eq(userId)).Executor()
 	_, err := dataset.ExecContext(ctx)
 	return err
+}
+
+// GetByPhoneNumber implements [domain.UserRepository].
+func (u *UserRepository) GetListByPhoneNumber(ctx context.Context, phones []string) (result []string, err error) {
+	fmt.Println("hallo", phones)
+	err = u.db.From("users").Select("phone_number").Where(goqu.C("phone_number").In(phones)).ScanValsContext(ctx, &result)
+	return
+}
+
+// GetByPhoneNumber implements [domain.UserRepository].
+func (u *UserRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (result domain.User, err error) {
+	dataset := u.db.From("users").Where(goqu.C("phone_number").Eq(phoneNumber))
+	_, err = dataset.ScanStructContext(ctx, &result)
+	return
 }
