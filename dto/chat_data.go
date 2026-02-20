@@ -17,6 +17,10 @@ type CreateNewMemberRequest struct {
 	IdRoom      string `json:"room_id"`
 }
 
+type GetRoomIdRequest struct {
+	RoomId string `json:"room_id"`
+}
+
 type RoomChatResponse struct {
 	ID        string       `json:"id"`
 	RoomId    string       `json:"room_id"`

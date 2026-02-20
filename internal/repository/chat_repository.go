@@ -34,13 +34,6 @@ func (c *ChatRepository) CheckRoomChat(ctx context.Context, user1 string, user2 
 	return
 }
 
-func (c *ChatRepository) GetByRoomID(ctx context.Context, roomID string) (result domain.RoomChat, err error) {
-	dataset := c.db.From("room_chats").Where(goqu.C("room_id").Eq(roomID))
-	_, err = dataset.ScanStructContext(ctx, &result)
-	return
-
-}
-
 // SaveRoomMember implements [domain.ChatRepository].
 func (c *ChatRepository) SaveRoomMember(ctx context.Context, member []*domain.RoomMember) error {
 	dataset := c.db.Insert("room_members").Rows(member).Executor()
@@ -63,9 +56,30 @@ func (c *ChatRepository) SaveRoomChat(ctx context.Context, room *domain.RoomChat
 	return err
 }
 
-// GetHistoryChat implements [domain.ChatRepository].
-func (c *ChatRepository) GetHistoryChat(ctx context.Context, roomID string, userId string) (result []domain.Message, err error) {
-	dataset := c.db.From("message").Where(goqu.C("room_id").Eq(roomID)).Where(goqu.C("user_id").Eq(userId)).Order(goqu.C("created_at").Asc()).Limit(50)
+// FindAllMessageRoomId implements [domain.ChatRepository].
+func (c *ChatRepository) FindAllMessageRoomId(ctx context.Context, roomID string) (result []domain.Message, err error) {
+	dataset := c.db.From("message").Where(goqu.C("room_id").Eq(roomID)).Order(goqu.C("created_at").Asc()).Limit(50)
 	err = dataset.ScanStructsContext(ctx, &result)
+	return
+}
+
+// FindAllRoomUser implements [domain.ChatRepository].
+func (c *ChatRepository) FindAllRoomUser(ctx context.Context, userId string) (result []domain.RoomChat, err error) {
+	dataset := c.db.
+		From(goqu.T("rooms")).
+		Join(
+			goqu.T("room_members"),
+			goqu.On(goqu.I("room_members.room_id").Eq(goqu.I("rooms.id"))),
+		).
+		Where(goqu.I("room_members.user_id").Eq(userId))
+
+	_, err = dataset.ScanStructContext(ctx, &result)
+	return
+}
+
+// FindByRoomID implements [domain.ChatRepository].
+func (c *ChatRepository) FindByRoomID(ctx context.Context, roomID string) (result domain.RoomChat, err error) {
+	dataset := c.db.From("rooms").Where(goqu.C("id").Eq(roomID))
+	_, err = dataset.ScanStructContext(ctx, &result)
 	return
 }

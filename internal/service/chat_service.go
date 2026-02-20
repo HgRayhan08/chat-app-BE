@@ -4,6 +4,7 @@ import (
 	"chat-app/domain"
 	"chat-app/dto"
 	"context"
+	"errors"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -80,7 +81,7 @@ func (c *chatService) CreateRoomChat(ctx context.Context, f *fiber.Ctx, roomChat
 		}
 	}
 
-	room, err := c.chatRepository.GetByRoomID(ctx, checkRoom.ID)
+	room, err := c.chatRepository.FindByRoomID(ctx, checkRoom.ID)
 	if err != nil {
 		return domain.RoomChat{}, err
 	}
@@ -89,19 +90,26 @@ func (c *chatService) CreateRoomChat(ctx context.Context, f *fiber.Ctx, roomChat
 }
 
 // GetChatByRoom implements [domain.ChatService].
-func (c *chatService) GetChatByRoom(ctx context.Context, roomID string) ([]domain.Message, error) {
-	panic("unimplemented")
+func (c *chatService) GetMessageByRoom(ctx context.Context, roomID dto.GetRoomIdRequest) ([]domain.Message, error) {
+	if roomID.RoomId == "" {
+		return nil, errors.New("Room id is Required")
+	}
+	return c.chatRepository.FindAllMessageRoomId(ctx, roomID.RoomId)
 }
 
 // LoadAllRoomChats implements [domain.ChatService].
-func (c *chatService) LoadAllRoomChats(ctx context.Context, roomID string) ([]domain.Message, error) {
-	panic("unimplemented")
+func (c *chatService) LoadAllRoomChats(ctx context.Context, f *fiber.Ctx) ([]domain.RoomChat, error) {
+	userId := f.Locals("user_id").(string)
+	if userId == "" {
+		return nil, errors.New("user id is Required")
+	}
+	return c.chatRepository.FindAllRoomUser(ctx, userId)
 }
 
 // SendMessage implements [domain.ChatService].
 func (c *chatService) SendMessage(ctx context.Context, chat *domain.Message) error {
 	if chat == nil {
-		return nil
+		return errors.New("Chat is Required")
 	}
 	return c.chatRepository.SaveChat(ctx, chat)
 }

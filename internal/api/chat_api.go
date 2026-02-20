@@ -27,7 +27,8 @@ func NewWebsocketAPI(app *fiber.App, chatService domain.ChatService, jwtMiddle f
 	// rest-api
 	app.Post("/new-chat", jwtMiddle, api.CreateNewChat)
 	app.Post("/new-member", jwtMiddle, api.CreateNewMember)
-
+	app.Get("/all-room", jwtMiddle, api.GetAllRoomChat)
+	app.Get("/all-message", jwtMiddle, api.GetAllMessageByRoom)
 }
 
 func (ca chatApi) handleWebSocket(ws *websocket.Conn) {
@@ -112,4 +113,30 @@ func (ca *chatApi) CreateNewMember(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(dto.ResponseError(fiber.StatusBadRequest, err.Error()))
 	}
 	return ctx.Status(fiber.StatusOK).JSON(dto.ResponseSucsessData(fiber.StatusOK, "Sucses", result))
+}
+
+func (ca *chatApi) GetAllRoomChat(ctx *fiber.Ctx) error {
+	c, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
+	defer cancel()
+	allRoom, err := ca.chatService.LoadAllRoomChats(c, ctx)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(fiber.StatusOK).JSON(dto.ResponseSucsessData(fiber.StatusOK, "Success Get Data", allRoom))
+}
+
+func (ca *chatApi) GetAllMessageByRoom(ctx *fiber.Ctx) error {
+	c, cancel := context.WithTimeout(ctx.Context(), 10*time.Second)
+	defer cancel()
+
+	var req dto.GetRoomIdRequest
+	err := ctx.BodyParser(&req)
+	if err != nil {
+		return err
+	}
+	result, err := ca.chatService.GetMessageByRoom(c, req)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(fiber.StatusOK).JSON(dto.ResponseSucsessData(fiber.StatusOK, "Success Get Data", result))
 }
